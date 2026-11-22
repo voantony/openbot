@@ -133,6 +133,7 @@ export { default as Network } from "lucide-solid/icons/network";
 export { default as OctagonX } from "lucide-solid/icons/octagon-x";
 export { default as Option } from "lucide-solid/icons/option";
 export { default as Palette } from "lucide-solid/icons/palette";
+export { default as PanelBottom } from "lucide-solid/icons/panel-bottom";
 export { default as PanelLeft } from "lucide-solid/icons/panel-left";
 export { default as PanelRight } from "lucide-solid/icons/panel-right";
 export { default as PanelTop } from "lucide-solid/icons/panel-top";

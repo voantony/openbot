@@ -1,5 +1,6 @@
 import { accountUsageProviderRows } from "@openbot/ui/features/account/account-usage-view";
 import { ServerMenu } from "@openbot/ui/features/servers/ServerMenu";
+import { ServerRailAddMenu, ServerRailButton } from "@openbot/ui/features/servers/ServerRail";
 import { HelpMenu } from "@openbot/ui/features/updates/HelpMenu";
 import {
   type CustomAgentUsageRailRow,
@@ -10,7 +11,7 @@ import {
   type PageRailProps,
 } from "@openbot/ui/features/window/PageRail";
 import { useText } from "@openbot/ui/text";
-import { createSignal } from "solid-js";
+import { createSignal, For } from "solid-js";
 import { fn } from "storybook/test";
 import type { Meta, StoryObj } from "storybook-solidjs-vite";
 import { STORY_SERVERS } from "./fixtures";
@@ -124,6 +125,7 @@ const lowCredits: MediaCreditsRailRow[] = [
 
 function RailPreview(props: {
   updateReady?: boolean;
+  serversInRail?: boolean;
   logo?: PageRailProps["logo"];
   customAgentUsage?: readonly CustomAgentUsageRailRow[];
   usageRows?: PageRailProps["usageRows"];
@@ -165,18 +167,45 @@ function RailPreview(props: {
           settingsNotice={props.updateReady ? t("account.update.ready") : undefined}
           logo={props.logo}
           server={
-            <ServerMenu
-              rail
-              serverName={STORY_SERVERS.find((server) => server.active)?.name ?? ""}
-              servers={STORY_SERVERS}
-              view="menu"
-              onViewChange={fn()}
-              onSelect={fn()}
-              onAdd={fn()}
-              onSetMuted={fn()}
-              onOpenNotificationSettings={fn()}
-              onOpenSettings={fn()}
-            />
+            props.serversInRail ? undefined : (
+              <ServerMenu
+                rail
+                serverName={STORY_SERVERS.find((server) => server.active)?.name ?? ""}
+                servers={STORY_SERVERS}
+                view="menu"
+                onViewChange={fn()}
+                onSelect={fn()}
+                onAdd={fn()}
+                onSetMuted={fn()}
+                onOpenNotificationSettings={fn()}
+                onOpenSettings={fn()}
+              />
+            )
+          }
+          serverList={
+            props.serversInRail ? (
+              <>
+                <For each={STORY_SERVERS} keyed={(server) => server.id}>
+                  {(server, index) => (
+                    <ServerRailButton
+                      server={server()}
+                      deleteAt={null}
+                      onSelect={fn()}
+                      shortcutLabel={`⌘${index() + 1}`}
+                      onSetMuted={fn()}
+                      onOpenNotificationSettings={fn()}
+                      onOpenSettings={fn()}
+                    />
+                  )}
+                </For>
+                <ServerRailAddMenu
+                  addLabel="server.rail.add"
+                  onAdd={fn()}
+                  onCreateLocal={fn()}
+                  onInstallServer={fn()}
+                />
+              </>
+            ) : undefined
           }
           help={
             <HelpMenu
@@ -206,6 +235,10 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
+
+export const ServersInRail: Story = {
+  args: { serversInRail: true },
+};
 
 export const SettingsNotice: Story = {
   args: { updateReady: true },

@@ -29,7 +29,7 @@ function shouldAutoCompactSidebar(
   serverView: ServerView,
 ): boolean {
   const serverRailWidth =
-    platform === undefined || serverView === "menu"
+    platform === undefined || serverView !== "rail"
       ? 0
       : platform === "darwin"
         ? MAC_SERVER_RAIL_WIDTH
@@ -37,6 +37,11 @@ function shouldAutoCompactSidebar(
           ? NARROW_SERVER_RAIL_WIDTH
           : SERVER_RAIL_WIDTH;
   return window.innerWidth - serverRailWidth - panelWidth < CONVERSATION_MIN_WIDTH;
+}
+
+function readServerView(): ServerView {
+  const saved = window.localStorage.getItem(SERVER_VIEW_STORAGE_KEY);
+  return saved === "rail" || saved === "page-rail" ? saved : "menu";
 }
 
 const RAIL_PINNED_BY_DEFAULT: ReadonlySet<PageRailPinnablePage> = new Set([
@@ -81,9 +86,7 @@ const Layout = createSimpleContext({
     const [leftPanelCollapsed, setLeftPanelCollapsed] = createSignal(
       window.localStorage.getItem(LEFT_PANEL_COLLAPSED_STORAGE_KEY) === "true",
     );
-    const [serverView, setServerViewSignal] = createSignal<ServerView>(
-      window.localStorage.getItem(SERVER_VIEW_STORAGE_KEY) === "rail" ? "rail" : "menu",
-    );
+    const [serverView, setServerViewSignal] = createSignal<ServerView>(readServerView());
     const [sidebarChatOrder, setSidebarChatOrderSignal] = createSignal<SidebarChatOrder>(readSidebarChatOrder());
     const [railPinChoices, setRailPinChoices] = createSignal<RailPinChoices>(readRailPinChoices());
     const railPinned = createMemo(() => {
@@ -98,6 +101,9 @@ const Layout = createSimpleContext({
     const leftPanelCompact = createMemo(() => sidebarClosed() || leftPanelNarrow());
     const serverRailVisible = createMemo(
       () => platform.appInfo() !== null && platform.chatWindow === null && serverView() === "rail",
+    );
+    const serverPageRailVisible = createMemo(
+      () => platform.appInfo() !== null && platform.chatWindow === null && serverView() === "page-rail",
     );
 
     function updateResponsiveSidebar(): void {
@@ -175,6 +181,7 @@ const Layout = createSimpleContext({
       serverView,
       setServerView,
       serverRailVisible,
+      serverPageRailVisible,
       sidebarChatOrder,
       setSidebarChatOrder,
       railPinned,

@@ -22,6 +22,7 @@ type WorkspaceFrameProps = ParentProps<
     left: JSX.Element;
     windowPage: WindowPage;
     page?: JSX.Element;
+    serverRail?: boolean | undefined;
     connection?: JSX.Element;
     initialLoading?: boolean;
     after?: JSX.Element;
@@ -44,6 +45,7 @@ export function WorkspaceFrame(props: WorkspaceFrameProps) {
     "left",
     "windowPage",
     "page",
+    "serverRail",
     "after",
     "children",
     "connection",
@@ -95,7 +97,7 @@ export function WorkspaceFrame(props: WorkspaceFrameProps) {
           "app-frame-sidebar-compact": props.compact,
           "app-frame-sidebar-closed": layout.sidebarClosed(),
           "app-frame-edge": platform.appInfo() !== null,
-          "app-frame-with-server-rail": layout.serverRailVisible(),
+          "app-frame-with-server-rail": props.serverRail === true,
           "app-frame-page-open": pageOpen(),
           "app-frame-platform-darwin": platform.appInfo()?.platform === "darwin",
         },

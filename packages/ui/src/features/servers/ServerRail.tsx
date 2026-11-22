@@ -73,6 +73,7 @@ interface ServerRailProps extends ServerActionCallbacks {
   servers: ServerSummary[];
   onSelect: (serverId: string) => void;
   onReorder: (serverIds: string[]) => void;
+  shortcutLabel?: ((serverId: string) => string | undefined) | undefined;
   onAdd?: (() => void) | undefined;
   addCreatesServer?: boolean | undefined;
   onCreateLocal?: (() => void) | undefined;
@@ -281,6 +282,7 @@ export function ServerRail(props: ServerRailProps) {
             <ServerRailButton
               server={server()}
               onSelect={props.onSelect}
+              shortcutLabel={props.shortcutLabel?.(server().id)}
               onOpenSettings={props.onOpenSettings}
               onLeave={props.onLeave}
               onDelete={props.onDelete}
@@ -336,6 +338,7 @@ export function ServerRail(props: ServerRailProps) {
                   <ServerRailButton
                     server={server()}
                     onSelect={props.onSelect}
+                    shortcutLabel={props.shortcutLabel?.(server().id)}
                     onOpenSettings={props.onOpenSettings}
                     onLeave={props.onLeave}
                     onDelete={props.onDelete}
@@ -400,7 +403,7 @@ export function ServerRail(props: ServerRailProps) {
   );
 }
 
-function ServerRailAddMenu(props: {
+export function ServerRailAddMenu(props: {
   addLabel: AppTextKey;
   onAdd: () => void;
   onCreateLocal?: (() => void) | undefined;
@@ -479,11 +482,12 @@ function ServerRailAddMenu(props: {
   );
 }
 
-function ServerRailButton(
+export function ServerRailButton(
   props: ServerActionCallbacks & {
     server: ServerSummary;
     deleteAt: number | null;
     onSelect: (serverId: string) => void;
+    shortcutLabel?: string | undefined;
     onMove?: (direction: -1 | 1) => void;
   },
 ) {
@@ -493,6 +497,7 @@ function ServerRailButton(
   const buttonLabel = () =>
     [
       t("server.rail.buttonLabel", { name: props.server.name }),
+      ...(props.shortcutLabel ? [props.shortcutLabel] : []),
       ...serverStatusLabels(props.server, t),
       ...planLabels(),
     ].join(", ");
@@ -602,6 +607,7 @@ function ServerRailButton(
       <Tooltip.Portal>
         <Tooltip.Content class="server-rail-tooltip">
           {props.server.name}
+          {props.shortcutLabel ? ` · ${props.shortcutLabel}` : ""}
           {props.server.thisComputer ? ` · ${t("server.rail.thisComputer")}` : ""}
           {sleepLabel() ? ` · ${sleepLabel()}` : ""}
           {props.server.notificationsMuted ? ` · ${muteDescription()}` : ""}

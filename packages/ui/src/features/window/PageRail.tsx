@@ -410,6 +410,7 @@ export interface PageRailProps {
   settingsNotice?: string | undefined;
   help: JSX.Element;
   server?: JSX.Element;
+  serverList?: JSX.Element;
   logo?: { variant: AppLogoVariant; href?: string | undefined } | undefined;
 }
 
@@ -693,6 +694,7 @@ export function PageRail(props: PageRailProps) {
             </Show>
           </RailButton>
         </div>
+        <div class="window-rail-server-list">{props.serverList}</div>
         <div class="window-rail-server-slot">{props.server}</div>
       </div>
     </nav>

@@ -354,6 +354,7 @@ export function WorkspaceShell(props: {
         <WorkspaceFrame
           class={chatWindow ? "app-frame-chat-window" : windowAgentDock() ? "app-frame-agent-dock" : undefined}
           compact={layout.leftPanelCompact()}
+          serverRail={layout.serverRailVisible()}
           initialLoading={!serversLoaded() || !scope.connection.synced}
           connection={
             <>

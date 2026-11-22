@@ -12,6 +12,7 @@ import {
   Eye,
   Moon,
   MotionTooltip,
+  PanelBottom,
   PanelLeft,
   Plus,
   Server,
@@ -37,19 +38,21 @@ import {
   serverStatusLabels,
 } from "./ServerRail";
 
-export type ServerView = "rail" | "menu";
+export type ServerView = "rail" | "menu" | "page-rail";
 
-const SERVER_VIEWS: readonly ServerView[] = ["rail", "menu"];
+const SERVER_VIEWS: readonly ServerView[] = ["rail", "menu", "page-rail"];
 
 const SERVER_VIEW_LABELS = {
   rail: "server.menu.layoutRail",
   menu: "server.menu.layoutMenu",
+  "page-rail": "server.menu.layoutPageRail",
 } as const satisfies Record<ServerView, AppTextKey>;
 
-const SERVER_VIEW_ICONS = { rail: PanelLeft, menu: ChevronsUpDown } as const satisfies Record<
-  ServerView,
-  typeof PanelLeft
->;
+const SERVER_VIEW_ICONS = {
+  rail: PanelLeft,
+  menu: ChevronsUpDown,
+  "page-rail": PanelBottom,
+} as const satisfies Record<ServerView, typeof PanelLeft>;
 
 export interface ServerMenuProps extends ServerActionCallbacks {
   servers: ServerSummary[];

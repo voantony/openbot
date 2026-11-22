@@ -2842,6 +2842,7 @@ function WebWorkspaceFrame(props: WebWorkspaceProps) {
               class="web-app-frame"
               data-web-mobile-pane={mobilePane()}
               compact={compact()}
+              serverRail={layout.serverRailVisible()}
               blockedServer={blockedServer()}
               paywall={paywall}
               planDeletesAt={hostedServers.planDeletesAt}

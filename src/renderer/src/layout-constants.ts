@@ -14,3 +14,4 @@ export const CONVERSATION_MIN_WIDTH = 424;
 export const MAC_SERVER_RAIL_WIDTH = 72;
 export const SERVER_RAIL_WIDTH = 64;
 export const NARROW_SERVER_RAIL_WIDTH = 56;
+export const SERVER_FAVORITES_STORAGE_KEY = "openbot:favorite-servers";

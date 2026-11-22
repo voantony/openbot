@@ -2,12 +2,15 @@ import type { ServerSummary } from "@openbot/contracts/ipc";
 import { classifyFailure } from "@openbot/telemetry";
 import type { ServerActionCallbacks } from "@openbot/ui/features/servers/ServerActionItems";
 import type { HiddenLocalServer } from "@openbot/ui/features/servers/ServerRail";
+import { fixedShortcutChords, shortcutText } from "@openbot/ui/features/settings/keyboard-shortcuts";
 import { useText } from "@openbot/ui/text";
 import { actionToast } from "../../action-toast";
+import { shortcutEnvironment } from "../../keyboard-shortcut-preference";
 import { usePlatform } from "../../platform";
 import { useSettings } from "../settings/settings-context";
 import { openServerPlanCheckout } from "./ServerPlanReminder";
 import { serverSupportsCapability } from "./server-capabilities";
+import { isFavoriteServer, toggleFavoriteServer } from "./server-favorites";
 import { useServerSelection } from "./server-selection";
 import { useServerSettings } from "./server-settings";
 import { useServers } from "./servers-context";
@@ -64,6 +67,15 @@ export function useServerActions() {
 
   function select(serverId: string): void {
     void selectServer(serverId).catch(selectFailed);
+  }
+
+  const environment = shortcutEnvironment();
+  const switchServerChords = fixedShortcutChords("switchServer", environment);
+  function switchServerLabel(serverId: string): string | undefined {
+    const index = orderedServers().findIndex((server) => server.id === serverId);
+    if (index < 0 || index > 8) return undefined;
+    const chord = switchServerChords[index];
+    return chord ? shortcutText(chord, environment.platform, t) : undefined;
   }
 
   function add(): void {
@@ -128,11 +140,14 @@ export function useServerActions() {
     canHide: () => remoteServers().length > 0,
     planDeletesAt,
     onRenewPlan: renewServerPlan,
+    onToggleFavorite: toggleFavoriteServer,
+    isFavorite: isFavoriteServer,
   } satisfies ServerActionCallbacks;
 
   return {
     orderedServers,
     select,
+    switchServerLabel,
     add,
     createLocal,
     addMenuCreateLocal,

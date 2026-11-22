@@ -2,9 +2,16 @@ import { isUpdateActivePhase } from "@openbot/contracts/ipc";
 import { AGENT_TASKS_CAPABILITY } from "@openbot/contracts/team-protocol/agent-tasks-v1";
 import { CRM_CAPABILITY } from "@openbot/contracts/team-protocol/crm-v1";
 import { ServerMenu } from "@openbot/ui/features/servers/ServerMenu";
+import {
+  addServerLabel,
+  ServerRail,
+  ServerRailAddMenu,
+  ServerRailButton,
+} from "@openbot/ui/features/servers/ServerRail";
 import { PageRail, type PageRailPage } from "@openbot/ui/features/window/PageRail";
 import { useText } from "@openbot/ui/text";
-import { Show } from "solid-js";
+import { createEffect, createSignal, For, onSettled, Show } from "solid-js";
+import { playActionSound } from "../../action-sounds";
 import { appPort } from "../../app-port";
 import { useLayout } from "../../layout";
 import { WorkflowsPage } from "../../lazy-views";
@@ -17,6 +24,7 @@ import {
   serverCanAdminister,
   serverSupportsCapability,
 } from "../servers/server-capabilities";
+import { isFavoriteServer } from "../servers/server-favorites";
 import { useServerSettings } from "../servers/server-settings";
 import { useServers } from "../servers/servers-context";
 import { useSettings } from "../settings/settings-context";
@@ -37,9 +45,26 @@ export function WorkspacePageRail(props: { hidden: boolean }) {
   const updates = useUpdates();
   const layout = useLayout();
   const whatsNew = useWhatsNew();
-  const { activeServer } = useServers();
+  const { activeServer, reorderServers } = useServers();
   const platform = usePlatform();
   const serverActions = useServerActions();
+  const [serverFlyoutOpen, setServerFlyoutOpen] = createSignal(false);
+  const firstColumnServers = () => {
+    const ordered = serverActions.orderedServers();
+    const favorites = ordered.filter((server) => isFavoriteServer(server.id));
+    return favorites.length > 0 ? favorites : ordered;
+  };
+  createEffect(
+    () => serverFlyoutOpen(),
+    (open) => {
+      if (!open) return;
+      const closeOnEscape = (event: KeyboardEvent) => {
+        if (event.key === "Escape") setServerFlyoutOpen(false);
+      };
+      window.addEventListener("keydown", closeOnEscape);
+      return () => window.removeEventListener("keydown", closeOnEscape);
+    },
+  );
   const { openServerSettings, serverSettingsTarget, serverSettingsShownSection } = useServerSettings();
   const logo = () => {
     const info = platform.appInfo();
@@ -84,6 +109,47 @@ export function WorkspacePageRail(props: { hidden: boolean }) {
     }
     return page === "pricing" ? null : page;
   };
+  function moveServer(serverId: string, direction: -1 | 1): void {
+    const ids = serverActions
+      .orderedServers()
+      .filter((server) => server.kind === "remote")
+      .map((server) => server.id);
+    const index = ids.indexOf(serverId);
+    const targetIndex = index + direction;
+    const moved = ids[index];
+    const displaced = ids[targetIndex];
+    if (index < 0 || moved === undefined || displaced === undefined) return;
+    ids[index] = displaced;
+    ids[targetIndex] = moved;
+    void reorderServers(ids);
+  }
+  onSettled(() => {
+    const handleServerShortcut = (event: KeyboardEvent) => {
+      const isMac = platform.appInfo()?.platform === "darwin";
+      if (
+        platform.landingPreview ||
+        !platform.appInfo() ||
+        event.defaultPrevented ||
+        event.isComposing ||
+        event.repeat ||
+        event.altKey ||
+        event.shiftKey ||
+        (isMac ? !event.metaKey || event.ctrlKey : !event.ctrlKey || event.metaKey) ||
+        !/^[1-9]$/.test(event.key)
+      ) {
+        return;
+      }
+      const server = serverActions.orderedServers()[Number(event.key) - 1];
+      if (!server) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      if (server.active) return;
+      playActionSound("navigate");
+      serverActions.select(server.id);
+    };
+    window.addEventListener("keydown", handleServerShortcut);
+    return () => window.removeEventListener("keydown", handleServerShortcut);
+  });
   return (
     <PageRail
       hidden={props.hidden}
@@ -117,7 +183,7 @@ export function WorkspacePageRail(props: { hidden: boolean }) {
       settingsNotice={updateNotice()}
       logo={logo()}
       server={
-        <Show when={platform.appInfo()}>
+        <Show when={platform.appInfo() && !layout.serverPageRailVisible()}>
           <ServerMenu
             rail
             serverName={activeServer()?.name ?? text.t("sidebar.topbar.localServer")}
@@ -133,6 +199,65 @@ export function WorkspacePageRail(props: { hidden: boolean }) {
             {...serverActions.callbacks}
           />
         </Show>
+      }
+      serverList={
+        <div
+          class="window-rail-server-list-host"
+          onPointerEnter={() => setServerFlyoutOpen(true)}
+          onPointerLeave={() => setServerFlyoutOpen(false)}
+          onFocusIn={() => setServerFlyoutOpen(true)}
+          onFocusOut={(event) => {
+            if (event.relatedTarget instanceof Node && event.currentTarget.contains(event.relatedTarget)) return;
+            setServerFlyoutOpen(false);
+          }}
+        >
+          <Show when={layout.serverPageRailVisible()}>
+            <For each={firstColumnServers()} keyed={(server) => server.id}>
+              {(server) => (
+                <ServerRailButton
+                  {...serverActions.callbacks}
+                  server={server()}
+                  deleteAt={serverActions.callbacks.planDeletesAt?.(server().id) ?? null}
+                  onSelect={serverActions.select}
+                  shortcutLabel={serverActions.switchServerLabel(server().id)}
+                  onMove={server().kind === "remote" ? (direction) => moveServer(server().id, direction) : undefined}
+                />
+              )}
+            </For>
+            <ServerRailAddMenu
+              addLabel={addServerLabel({
+                addCreatesServer: serverActions.addCreatesServer(),
+                onCreateLocal: serverActions.addMenuCreateLocal(),
+              })}
+              onAdd={serverActions.add}
+              onCreateLocal={serverActions.addMenuCreateLocal()}
+              onInstallServer={serverActions.addMenuInstallServer()}
+              hiddenLocal={serverActions.hiddenLocal()}
+            />
+          </Show>
+          <Show when={serverFlyoutOpen() && layout.serverPageRailVisible()}>
+            <div class="window-rail-server-flyout">
+              <ServerRail
+                servers={serverActions.orderedServers()}
+                onSelect={(serverId) => {
+                  setServerFlyoutOpen(false);
+                  serverActions.select(serverId);
+                }}
+                shortcutLabel={serverActions.switchServerLabel}
+                onReorder={(serverIds) => void reorderServers(serverIds)}
+                onAdd={() => {
+                  setServerFlyoutOpen(false);
+                  serverActions.add();
+                }}
+                onCreateLocal={serverActions.addMenuCreateLocal()}
+                onInstallServer={serverActions.addMenuInstallServer()}
+                addCreatesServer={serverActions.addCreatesServer()}
+                hiddenLocal={serverActions.hiddenLocal()}
+                {...serverActions.callbacks}
+              />
+            </div>
+          </Show>
+        </div>
       }
       help={
         <RailHelpMenu

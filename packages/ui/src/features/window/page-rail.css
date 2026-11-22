@@ -48,6 +48,54 @@
   -webkit-app-region: no-drag;
 }
 
+.window-rail-server-list {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--openbot-space-1-5);
+  -webkit-app-region: no-drag;
+}
+
+.window-rail-server-list:empty {
+  display: none;
+}
+
+.window-rail-server-list .server-rail-mark {
+  inset-inline-start: -3px;
+}
+
+.window-rail-server-list-host {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--openbot-space-1-5);
+  -webkit-app-region: no-drag;
+}
+
+.window-rail-server-flyout {
+  position: absolute;
+  inset-inline-start: 100%;
+  bottom: 0;
+  z-index: var(--openbot-layer-dropdown);
+  display: flex;
+  max-height: calc(100dvh - var(--openbot-space-6));
+  overflow: hidden;
+  border-radius: var(--openbot-radius-lg);
+  box-shadow: var(--openbot-shadow-raised);
+  -webkit-app-region: no-drag;
+}
+
+.window-rail-server-flyout .server-rail {
+  max-height: calc(100dvh - var(--openbot-space-6));
+  padding: var(--openbot-space-2) var(--server-rail-inline-padding);
+  -webkit-app-region: no-drag;
+}
+
+.window-rail-server-flyout .server-rail::before,
+.window-rail-server-flyout .server-rail::after {
+  content: none;
+}
+
 .window-rail-end,
 .window-rail-server-slot {
   display: flex;
