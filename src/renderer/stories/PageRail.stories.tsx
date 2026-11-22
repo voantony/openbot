@@ -1,6 +1,6 @@
 import { accountUsageProviderRows } from "@openbot/ui/features/account/account-usage-view";
 import { ServerMenu } from "@openbot/ui/features/servers/ServerMenu";
-import { ServerRailAddMenu, ServerRailButton } from "@openbot/ui/features/servers/ServerRail";
+import { ServerRailButton } from "@openbot/ui/features/servers/ServerRail";
 import { HelpMenu } from "@openbot/ui/features/updates/HelpMenu";
 import {
   type CustomAgentUsageRailRow,
@@ -198,12 +198,6 @@ function RailPreview(props: {
                     />
                   )}
                 </For>
-                <ServerRailAddMenu
-                  addLabel="server.rail.add"
-                  onAdd={fn()}
-                  onCreateLocal={fn()}
-                  onInstallServer={fn()}
-                />
               </>
             ) : undefined
           }
