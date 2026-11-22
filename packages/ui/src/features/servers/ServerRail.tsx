@@ -295,6 +295,8 @@ export function ServerRail(props: ServerRailProps) {
               canHide={props.canHide}
               onSetMuted={props.onSetMuted}
               onOpenNotificationSettings={props.onOpenNotificationSettings}
+              onToggleFavorite={props.onToggleFavorite}
+              isFavorite={props.isFavorite}
               deleteAt={props.planDeletesAt?.(server().id) ?? null}
             />
           )}
@@ -351,6 +353,8 @@ export function ServerRail(props: ServerRailProps) {
                     canHide={props.canHide}
                     onSetMuted={props.onSetMuted}
                     onOpenNotificationSettings={props.onOpenNotificationSettings}
+                    onToggleFavorite={props.onToggleFavorite}
+                    isFavorite={props.isFavorite}
                     deleteAt={props.planDeletesAt?.(server().id) ?? null}
                     onMove={(direction) => moveServer(server().id, direction)}
                   />
@@ -589,6 +593,8 @@ export function ServerRailButton(
                 trigger={() => trigger}
                 onSetMuted={props.onSetMuted}
                 onOpenNotificationSettings={props.onOpenNotificationSettings}
+                onToggleFavorite={props.onToggleFavorite}
+                isFavorite={props.isFavorite}
                 onOpenSettings={props.onOpenSettings}
                 onLeave={props.onLeave}
                 onDelete={props.onDelete}
