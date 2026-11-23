@@ -10,7 +10,6 @@ import { usePlatform } from "../../platform";
 import { useSettings } from "../settings/settings-context";
 import { openServerPlanCheckout } from "./ServerPlanReminder";
 import { serverSupportsCapability } from "./server-capabilities";
-import { isFavoriteServer, toggleFavoriteServer } from "./server-favorites";
 import { useServerSelection } from "./server-selection";
 import { useServerSettings } from "./server-settings";
 import { useServers } from "./servers-context";
@@ -140,8 +139,6 @@ export function useServerActions() {
     canHide: () => remoteServers().length > 0,
     planDeletesAt,
     onRenewPlan: renewServerPlan,
-    onToggleFavorite: toggleFavoriteServer,
-    isFavorite: isFavoriteServer,
   } satisfies ServerActionCallbacks;
 
   return {

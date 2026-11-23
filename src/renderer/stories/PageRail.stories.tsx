@@ -184,21 +184,19 @@ function RailPreview(props: {
           }
           serverList={
             props.serversInRail ? (
-              <>
-                <For each={STORY_SERVERS} keyed={(server) => server.id}>
-                  {(server, index) => (
-                    <ServerRailButton
-                      server={server()}
-                      deleteAt={null}
-                      onSelect={fn()}
-                      shortcutLabel={`⌘${index() + 1}`}
-                      onSetMuted={fn()}
-                      onOpenNotificationSettings={fn()}
-                      onOpenSettings={fn()}
-                    />
-                  )}
-                </For>
-              </>
+              <For each={STORY_SERVERS} keyed={(server) => server.id}>
+                {(server, index) => (
+                  <ServerRailButton
+                    server={server()}
+                    deleteAt={null}
+                    onSelect={fn()}
+                    shortcutLabel={`⌘${index() + 1}`}
+                    onSetMuted={fn()}
+                    onOpenNotificationSettings={fn()}
+                    onOpenSettings={fn()}
+                  />
+                )}
+              </For>
             ) : undefined
           }
           help={

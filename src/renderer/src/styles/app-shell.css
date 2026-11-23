@@ -658,6 +658,20 @@
   }
 }
 
+.server-rail-monogram {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border: 1px solid var(--openbot-border);
+  border-radius: var(--openbot-radius-lg);
+  background: var(--openbot-bg-surface);
+  color: var(--openbot-text-secondary);
+  font-size: var(--openbot-text-sm);
+  font-weight: 740;
+  letter-spacing: -0.02em;
+}
+
 .server-rail-logo {
   width: 40px;
   height: 40px;
@@ -694,6 +708,22 @@
 .server-rail-button[aria-pressed="false"]:hover .server-rail-mark {
   height: 12px;
   opacity: 1;
+}
+
+.server-rail-action .server-rail-monogram {
+  border-style: dashed;
+  background: transparent;
+  color: var(--openbot-accent-text);
+  font-size: var(--openbot-text-2xl);
+  font-weight: 400;
+}
+
+.server-rail-action svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: var(--openbot-icon-stroke-lg);
 }
 
 .server-rail-tooltip {
@@ -3405,6 +3435,13 @@ textarea {
 
 .sidebar {
   --agent-avatar-outline: var(--openbot-bg-sidebar);
+}
+
+.server-rail-monogram,
+.server-rail-action .server-rail-monogram {
+  border-color: var(--openbot-border);
+  background: var(--openbot-bg-surface);
+  color: var(--openbot-text-secondary);
 }
 
 .sidebar-icon-button:hover,

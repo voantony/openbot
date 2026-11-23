@@ -3371,8 +3371,6 @@
   "server.members.rolesOf": ["de", "es", "fr", "it", "ja", "pt", "ru", "tr"],
   "server.members.serverRole": ["de", "es", "fr", "it", "ja", "pt", "ru", "tr"],
   "server.menu.layoutPageRail": ["ar", "de", "es", "fr", "he", "it", "ja", "ko", "nl", "pl", "pt", "ru", "tr", "zh"],
-  "server.rail.favorite": ["ar", "de", "es", "fr", "he", "it", "ja", "ko", "nl", "pl", "pt", "ru", "tr", "zh"],
-  "server.rail.unfavorite": ["ar", "de", "es", "fr", "he", "it", "ja", "ko", "nl", "pl", "pt", "ru", "tr", "zh"],
   "server.roles.agentLevel": ["de", "es", "fr", "it", "ja", "pt", "ru", "tr"],
   "server.roles.agentList": ["de", "es", "fr", "it", "ja", "pt", "ru", "tr"],
   "server.roles.agents": ["de", "es", "fr", "it", "ja", "pt", "ru", "tr"],

@@ -1,6 +1,16 @@
 import type { HostedServerSleep, ServerConnectionState, ServerSummary } from "@openbot/contracts/ipc";
 import type { AppTextKey, AppTranslate } from "@openbot/i18n";
-import { BellOff, buttonVariants, ContextMenu, Eye, Plus, Server, ServerPlushLogo, Tooltip } from "@openbot/ui";
+import {
+  BellOff,
+  buttonVariants,
+  ContextMenu,
+  DropdownMenu,
+  Eye,
+  Plus,
+  Server,
+  ServerPlushLogo,
+  Tooltip,
+} from "@openbot/ui";
 import { createEffect, createSignal, createStore, For, onCleanup, Show } from "solid-js";
 import { createScrollFades } from "../../components/createScrollFades";
 import { createVerticalDragPreview } from "../../components/createVerticalDragPreview";
@@ -84,7 +94,6 @@ export function ServerRail(props: ServerRailProps) {
   const scrollFades = createScrollFades();
   let railList: HTMLDivElement | undefined;
   let remoteList: HTMLUListElement | undefined;
-  let addMenuAnchor: HTMLElement | undefined;
   let dragSlots: DragSlot[] = [];
   let dragStartScrollTop = 0;
   let lastDragClientY = 0;
@@ -241,207 +250,235 @@ export function ServerRail(props: ServerRailProps) {
     dragPreview.stop();
   }
 
-  function openAddMenu(clientX: number, clientY: number): void {
-    addMenuAnchor?.dispatchEvent(new MouseEvent("contextmenu", { bubbles: true, cancelable: true, clientX, clientY }));
-  }
-
-  function openAddMenuFromRail(event: MouseEvent): void {
-    if (event.target instanceof Element && event.target.closest(".server-rail-button")) return;
-    event.preventDefault();
-    event.stopPropagation();
-    openAddMenu(event.clientX, event.clientY);
-  }
-
   return (
-    <>
-      <aside
-        class="server-rail"
-        aria-label={t("server.rail.label")}
-        onContextMenu={openAddMenuFromRail}
-        onDragOver={(event) => {
-          if (!draggedId()) return;
-          event.preventDefault();
-          if (event.dataTransfer) event.dataTransfer.dropEffect = "move";
-          dragPreview.move(event.clientY);
-          updateDragTarget(event.clientY);
-          updateAutoScroll(event.clientY);
+    <aside
+      class="server-rail"
+      aria-label={t("server.rail.label")}
+      onDragOver={(event) => {
+        if (!draggedId()) return;
+        event.preventDefault();
+        if (event.dataTransfer) event.dataTransfer.dropEffect = "move";
+        dragPreview.move(event.clientY);
+        updateDragTarget(event.clientY);
+        updateAutoScroll(event.clientY);
+      }}
+      onDrop={(event) => {
+        event.preventDefault();
+        const targetId = updateDragTarget(event.clientY) ?? dragOverId();
+        if (targetId) dropServer(targetId);
+        stopDragging();
+      }}
+    >
+      <div
+        class={["server-rail-list", scrollFades.classes()]}
+        ref={(element) => {
+          railList = element;
+          scrollFades.bind(element);
         }}
-        onDrop={(event) => {
-          event.preventDefault();
-          const targetId = updateDragTarget(event.clientY) ?? dragOverId();
-          if (targetId) dropServer(targetId);
-          stopDragging();
-        }}
+        onScroll={scrollFades.measure}
       >
-        <div
-          class={["server-rail-list", scrollFades.classes()]}
-          ref={(element) => {
-            railList = element;
-            scrollFades.bind(element);
-          }}
-          onScroll={scrollFades.measure}
-        >
-          <For each={localServers()} keyed={(server) => server.id}>
-            {(server) => (
-              <ServerRailButton
-                server={server()}
-                onSelect={props.onSelect}
-                shortcutLabel={props.shortcutLabel?.(server().id)}
-                onOpenSettings={props.onOpenSettings}
-                onLeave={props.onLeave}
-                onDelete={props.onDelete}
-                canDelete={props.canDelete}
-                onRestart={props.onRestart}
-                canRestart={props.canRestart}
-                onRemove={props.onRemove}
-                canRemove={props.canRemove}
-                onHide={props.onHide}
-                canHide={props.canHide}
-                onSetMuted={props.onSetMuted}
-                onOpenNotificationSettings={props.onOpenNotificationSettings}
-                onToggleFavorite={props.onToggleFavorite}
-                isFavorite={props.isFavorite}
-                deleteAt={props.planDeletesAt?.(server().id) ?? null}
-              />
-            )}
-          </For>
-          <Show when={remoteServers().length > 0}>
-            <ul
-              ref={(element) => (remoteList = element)}
-              class="server-rail-remote-list"
-              data-dragging={draggedId() ? "" : undefined}
-            >
-              <For each={remoteServers()} keyed={(server) => server.id}>
-                {(server) => (
-                  <li
-                    class={[
-                      "server-rail-server-item",
-                      {
-                        "server-rail-server-item-dragging": draggedId() === server().id,
-                        "server-rail-server-item-drag-over": dragOverId() === server().id,
-                      },
-                    ]}
-                    style={{ "--server-rail-drag-step": dragStep(server().id) }}
-                    data-server-id={server().id}
-                    draggable="true"
-                    onDragStart={(event) => {
-                      event.dataTransfer?.setData("text/plain", server().id);
-                      if (event.dataTransfer) event.dataTransfer.effectAllowed = "move";
-                      measureDragSlots();
-                      if (railList) {
-                        dragPreview.start({
-                          bounds: railList,
-                          className: "server-rail-drag-preview",
-                          event,
-                          source: event.currentTarget,
-                        });
-                      }
-                      setDraggedId(server().id);
-                      setDragOverId(server().id);
-                    }}
-                    onDragEnd={stopDragging}
-                  >
-                    <ServerRailButton
-                      server={server()}
-                      onSelect={props.onSelect}
-                      shortcutLabel={props.shortcutLabel?.(server().id)}
-                      onOpenSettings={props.onOpenSettings}
-                      onLeave={props.onLeave}
-                      onDelete={props.onDelete}
-                      canDelete={props.canDelete}
-                      onRestart={props.onRestart}
-                      canRestart={props.canRestart}
-                      onRemove={props.onRemove}
-                      canRemove={props.canRemove}
-                      onHide={props.onHide}
-                      canHide={props.canHide}
-                      onSetMuted={props.onSetMuted}
-                      onOpenNotificationSettings={props.onOpenNotificationSettings}
-                      onToggleFavorite={props.onToggleFavorite}
-                      isFavorite={props.isFavorite}
-                      deleteAt={props.planDeletesAt?.(server().id) ?? null}
-                      onMove={(direction) => moveServer(server().id, direction)}
-                    />
-                  </li>
-                )}
-              </For>
-            </ul>
+        <For each={localServers()} keyed={(server) => server.id}>
+          {(server) => (
+            <ServerRailButton
+              server={server()}
+              onSelect={props.onSelect}
+              shortcutLabel={props.shortcutLabel?.(server().id)}
+              onOpenSettings={props.onOpenSettings}
+              onLeave={props.onLeave}
+              onDelete={props.onDelete}
+              canDelete={props.canDelete}
+              onRestart={props.onRestart}
+              canRestart={props.canRestart}
+              onRemove={props.onRemove}
+              canRemove={props.canRemove}
+              onHide={props.onHide}
+              canHide={props.canHide}
+              onSetMuted={props.onSetMuted}
+              onOpenNotificationSettings={props.onOpenNotificationSettings}
+              deleteAt={props.planDeletesAt?.(server().id) ?? null}
+            />
+          )}
+        </For>
+        <Show when={remoteServers().length > 0}>
+          <ul
+            ref={(element) => (remoteList = element)}
+            class="server-rail-remote-list"
+            data-dragging={draggedId() ? "" : undefined}
+          >
+            <For each={remoteServers()} keyed={(server) => server.id}>
+              {(server) => (
+                <li
+                  class={[
+                    "server-rail-server-item",
+                    {
+                      "server-rail-server-item-dragging": draggedId() === server().id,
+                      "server-rail-server-item-drag-over": dragOverId() === server().id,
+                    },
+                  ]}
+                  style={{ "--server-rail-drag-step": dragStep(server().id) }}
+                  data-server-id={server().id}
+                  draggable="true"
+                  onDragStart={(event) => {
+                    event.dataTransfer?.setData("text/plain", server().id);
+                    if (event.dataTransfer) event.dataTransfer.effectAllowed = "move";
+                    measureDragSlots();
+                    if (railList) {
+                      dragPreview.start({
+                        bounds: railList,
+                        className: "server-rail-drag-preview",
+                        event,
+                        source: event.currentTarget,
+                      });
+                    }
+                    setDraggedId(server().id);
+                    setDragOverId(server().id);
+                  }}
+                  onDragEnd={stopDragging}
+                >
+                  <ServerRailButton
+                    server={server()}
+                    onSelect={props.onSelect}
+                    shortcutLabel={props.shortcutLabel?.(server().id)}
+                    onOpenSettings={props.onOpenSettings}
+                    onLeave={props.onLeave}
+                    onDelete={props.onDelete}
+                    canDelete={props.canDelete}
+                    onRestart={props.onRestart}
+                    canRestart={props.canRestart}
+                    onRemove={props.onRemove}
+                    canRemove={props.canRemove}
+                    onHide={props.onHide}
+                    canHide={props.canHide}
+                    onSetMuted={props.onSetMuted}
+                    onOpenNotificationSettings={props.onOpenNotificationSettings}
+                    deleteAt={props.planDeletesAt?.(server().id) ?? null}
+                    onMove={(direction) => moveServer(server().id, direction)}
+                  />
+                </li>
+              )}
+            </For>
+          </ul>
+        </Show>
+        <Show when={props.onAdd}>
+          <Show
+            when={props.onCreateLocal || props.onInstallServer || props.hiddenLocal}
+            fallback={
+              <Tooltip.Root
+                placement="right"
+                gutter={10}
+                openDelay={SERVER_RAIL_TOOLTIP_OPEN_DELAY}
+                closeDelay={0}
+                skipDelayDuration={300}
+              >
+                <Tooltip.Trigger
+                  type="button"
+                  class={`${buttonVariants({ variant: "outline", size: "sm" })} server-rail-button server-rail-action`}
+                  aria-label={t(addServerLabel(props))}
+                  data-cuelume-open=""
+                  data-cuelume-emphasis="subtle"
+                  onClick={() => props.onAdd?.()}
+                >
+                  <span class="server-rail-monogram">+</span>
+                </Tooltip.Trigger>
+                <Tooltip.Portal>
+                  <Tooltip.Content class="server-rail-tooltip">{t(addServerLabel(props))}</Tooltip.Content>
+                </Tooltip.Portal>
+              </Tooltip.Root>
+            }
+          >
+            <ServerRailAddMenu
+              addLabel={addServerLabel(props)}
+              onAdd={() => props.onAdd?.()}
+              onCreateLocal={props.onCreateLocal}
+              onInstallServer={props.onInstallServer}
+              hiddenLocal={props.hiddenLocal}
+            />
           </Show>
-          <span class="sr-only" aria-live="polite">
-            {announcement()}
-          </span>
-        </div>
-      </aside>
-      <Show when={props.onAdd}>
-        <ContextMenu.Root modal={false}>
-          <ContextMenu.Trigger hidden ref={(element) => (addMenuAnchor = element)} />
-          <ContextMenu.Portal>
-            <ContextMenu.Content class="agent-context-menu" aria-label={t(addServerLabel(props))}>
-              <ServerRailAddItems
-                menu={ContextMenu}
-                addLabel={addServerLabel(props)}
-                onAdd={props.onAdd}
-                onCreateLocal={props.onCreateLocal}
-                onInstallServer={props.onInstallServer}
-                hiddenLocal={props.hiddenLocal}
-              />
-            </ContextMenu.Content>
-          </ContextMenu.Portal>
-        </ContextMenu.Root>
-      </Show>
-    </>
+        </Show>
+        <span class="sr-only" aria-live="polite">
+          {announcement()}
+        </span>
+      </div>
+    </aside>
   );
 }
 
-export function ServerRailAddItems(props: {
-  menu: Pick<typeof ContextMenu, "Item">;
+export function ServerRailAddMenu(props: {
   addLabel: AppTextKey;
-  onAdd?: (() => void) | undefined;
+  onAdd: () => void;
   onCreateLocal?: (() => void) | undefined;
   onInstallServer?: (() => void) | undefined;
   hiddenLocal?: HiddenLocalServer | undefined;
 }) {
   const { t } = useText();
-  const Menu = props.menu;
+  const [tooltipOpen, setTooltipOpen] = createSignal(false);
+  const [menuOpen, setMenuOpen] = createSignal(false);
   return (
-    <>
-      <Menu.Item class="server-menu-add" onSelectAfterClose={props.onAdd}>
-        <span class="server-menu-add-circle" aria-hidden="true">
-          <Plus />
-        </span>
-        <span>{t(props.addLabel)}</span>
-      </Menu.Item>
-      <Show when={props.onCreateLocal}>
-        {(onCreateLocal) => (
-          <Menu.Item class="server-menu-add" onSelectAfterClose={onCreateLocal()}>
-            <span class="server-menu-add-circle" aria-hidden="true">
-              <Plus />
-            </span>
-            <span>{t("server.local.createTitle")}</span>
-          </Menu.Item>
-        )}
-      </Show>
-      <Show when={props.onInstallServer}>
-        {(onInstallServer) => (
-          <Menu.Item class="server-menu-add" onSelectAfterClose={onInstallServer()}>
-            <span class="server-menu-add-circle" aria-hidden="true">
-              <Server />
-            </span>
-            <span>{t("server.install.title")}</span>
-          </Menu.Item>
-        )}
-      </Show>
-      <Show when={props.hiddenLocal}>
-        {(hiddenLocal) => (
-          <Menu.Item class="server-menu-add" onSelectAfterClose={hiddenLocal().show}>
-            <span class="server-menu-add-circle" aria-hidden="true">
-              <Eye />
-            </span>
-            <span>{t("server.rail.showLocal", { name: hiddenLocal().name })}</span>
-          </Menu.Item>
-        )}
-      </Show>
-    </>
+    <Tooltip.Root
+      open={tooltipOpen() && !menuOpen()}
+      onOpenChange={setTooltipOpen}
+      placement="right"
+      gutter={10}
+      openDelay={SERVER_RAIL_TOOLTIP_OPEN_DELAY}
+      closeDelay={0}
+      skipDelayDuration={300}
+    >
+      <Tooltip.Trigger as="div" class="server-rail-tooltip-trigger">
+        <DropdownMenu.Root placement="right-start" gutter={10} onOpenChange={setMenuOpen}>
+          <DropdownMenu.Trigger
+            class={`${buttonVariants({ variant: "outline", size: "sm" })} server-rail-button server-rail-action`}
+            aria-label={t("server.rail.add")}
+            data-cuelume-open=""
+            data-cuelume-emphasis="subtle"
+          >
+            <span class="server-rail-monogram">+</span>
+          </DropdownMenu.Trigger>
+          <DropdownMenu.Portal>
+            <DropdownMenu.Content aria-label={t("server.rail.add")}>
+              <DropdownMenu.Item class="server-menu-add" onSelectAfterClose={props.onAdd}>
+                <span class="server-menu-add-circle" aria-hidden="true">
+                  <Plus />
+                </span>
+                <span>{t(props.addLabel)}</span>
+              </DropdownMenu.Item>
+              <Show when={props.onCreateLocal}>
+                {(onCreateLocal) => (
+                  <DropdownMenu.Item class="server-menu-add" onSelectAfterClose={onCreateLocal()}>
+                    <span class="server-menu-add-circle" aria-hidden="true">
+                      <Plus />
+                    </span>
+                    <span>{t("server.local.createTitle")}</span>
+                  </DropdownMenu.Item>
+                )}
+              </Show>
+              <Show when={props.onInstallServer}>
+                {(onInstallServer) => (
+                  <DropdownMenu.Item class="server-menu-add" onSelectAfterClose={onInstallServer()}>
+                    <span class="server-menu-add-circle" aria-hidden="true">
+                      <Server />
+                    </span>
+                    <span>{t("server.install.title")}</span>
+                  </DropdownMenu.Item>
+                )}
+              </Show>
+              <Show when={props.hiddenLocal}>
+                {(hiddenLocal) => (
+                  <DropdownMenu.Item class="server-menu-add" onSelectAfterClose={hiddenLocal().show}>
+                    <span class="server-menu-add-circle" aria-hidden="true">
+                      <Eye />
+                    </span>
+                    <span>{t("server.rail.showLocal", { name: hiddenLocal().name })}</span>
+                  </DropdownMenu.Item>
+                )}
+              </Show>
+            </DropdownMenu.Content>
+          </DropdownMenu.Portal>
+        </DropdownMenu.Root>
+      </Tooltip.Trigger>
+      <Tooltip.Portal>
+        <Tooltip.Content class="server-rail-tooltip">{t("server.rail.add")}</Tooltip.Content>
+      </Tooltip.Portal>
+    </Tooltip.Root>
   );
 }
 
@@ -552,8 +589,6 @@ export function ServerRailButton(
                 trigger={() => trigger}
                 onSetMuted={props.onSetMuted}
                 onOpenNotificationSettings={props.onOpenNotificationSettings}
-                onToggleFavorite={props.onToggleFavorite}
-                isFavorite={props.isFavorite}
                 onOpenSettings={props.onOpenSettings}
                 onLeave={props.onLeave}
                 onDelete={props.onDelete}

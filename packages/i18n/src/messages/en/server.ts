@@ -228,8 +228,6 @@ export const messages = defineMessages("server", {
   "server.rail.addRemote": "Add remote server",
   "server.rail.add": "Add a server",
   "server.rail.buttonLabel": "{name} server",
-  "server.rail.favorite": "Favorite server",
-  "server.rail.unfavorite": "Unfavorite server",
   "server.rail.thisComputer": "on this computer",
   "server.rail.notificationsMuted": "notifications muted",
   "server.rail.actions": "Server actions",

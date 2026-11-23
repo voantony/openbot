@@ -1,17 +1,6 @@
 import { canAdministerServer, type ServerNotificationLevel, type ServerSummary } from "@openbot/contracts/ipc";
 import type { AppFormat, AppTextKey, AppTranslate } from "@openbot/i18n";
-import {
-  Bell,
-  BellOff,
-  ChevronRight,
-  type ContextMenu,
-  EyeOff,
-  LogOut,
-  RotateCcw,
-  Star,
-  StarOff,
-  Trash2,
-} from "@openbot/ui";
+import { Bell, BellOff, ChevronRight, type ContextMenu, EyeOff, LogOut, RotateCcw, Trash2 } from "@openbot/ui";
 import { For, Show } from "solid-js";
 import { useText } from "../../text";
 
@@ -67,8 +56,6 @@ export interface ServerActionCallbacks {
   canHide?: ((serverId: string) => boolean) | undefined;
   planDeletesAt?: ((serverId: string) => number | null) | undefined;
   onRenewPlan?: ((serverId: string) => Promise<void>) | undefined;
-  onToggleFavorite?: ((serverId: string) => void) | undefined;
-  isFavorite?: ((serverId: string) => boolean) | undefined;
 }
 
 export function ServerActionItems(
@@ -100,17 +87,6 @@ export function ServerActionItems(
   const Menu = props.menu;
   return (
     <>
-      <Show when={props.onToggleFavorite}>
-        <Menu.Item onSelect={() => props.onToggleFavorite?.(props.server.id)}>
-          <Show
-            when={props.isFavorite?.(props.server.id)}
-            fallback={<Star class="agent-context-icon size-4" aria-hidden="true" />}
-          >
-            <StarOff class="agent-context-icon size-4" aria-hidden="true" />
-          </Show>
-          <span>{t(props.isFavorite?.(props.server.id) ? "server.rail.unfavorite" : "server.rail.favorite")}</span>
-        </Menu.Item>
-      </Show>
       <Show when={props.onSetMuted}>
         <Show
           when={!props.server.notificationsMuted}
